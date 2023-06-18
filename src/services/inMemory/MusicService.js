@@ -14,7 +14,6 @@ class MusicService {
     this._music.push(newAlbum)
 
     const isSuccess = this._music.filter((m) => m.id === id).length > 0
-
     if (!isSuccess) {
       throw new Error('Catatan gagal ditambahkan')
     }

@@ -18,8 +18,8 @@ const routes = (handler) => [
     method: 'DELETE',
     path: '/albums/{id}',
     handler: handler.deleteAlbumByIdHandler
-  },
-  {
+  }
+  /* {
     method: 'POST',
     path: '/songs',
     handler: handler.postSongHandler
@@ -43,7 +43,7 @@ const routes = (handler) => [
     method: 'DELETE',
     path: '/songs/{id}',
     handler: handler.deleteSongByIdHandler
-  }
+  } */
 
 ]
 
