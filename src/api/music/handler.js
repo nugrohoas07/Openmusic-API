@@ -1,14 +1,16 @@
+const AutoBind = require('auto-bind')
+const ClientError = require('../../exceptions/ClientError')
+
 class MusicHandler {
-  constructor (service) {
+  constructor (service, validator) {
     this._service = service
-    this.postAlbumHandler = this.postAlbumHandler.bind(this)
-    this.getAlbumByIdHandler = this.getAlbumByIdHandler.bind(this)
-    this.putAlbumByIdHandler = this.putAlbumByIdHandler.bind(this)
-    this.deleteAlbumByIdHandler = this.deleteAlbumByIdHandler.bind(this)
+    this._validator = validator
+    AutoBind(this)
   }
 
   postAlbumHandler (request, h) {
     try {
+      this._validator.validateAlbumPayload(request.payload)
       const { name, year } = request.payload
       const albumId = this._service.addAlbum({ name, year })
       const response = h.response({
@@ -21,14 +23,15 @@ class MusicHandler {
       response.code(201)
       return response
     } catch (error) {
-      /* if (error) {
+      if (error instanceof ClientError) {
         const response = h.response({
           status: 'fail',
           message: error.message
         })
         response.code(error.statuscode)
         return response
-      } */
+      }
+      // Server Error 500
       const response = h.response({
         status: 'error',
         message: 'Maaf, terjadi kegagalan pada server kami.'
@@ -49,17 +52,27 @@ class MusicHandler {
         }
       }
     } catch (error) {
+      if (error instanceof ClientError) {
+        const response = h.response({
+          status: 'fail',
+          message: error.message
+        })
+        response.code(error.statuscode)
+        return response
+      }
+      // Server Error 500
       const response = h.response({
-        status: 'fail',
-        message: error.message
+        status: 'error',
+        message: 'Maaf, terjadi kegagalan pada server kami.'
       })
-      response.code(404)
+      response.code(500)
       return response
     }
   }
 
   putAlbumByIdHandler (request, h) {
     try {
+      this._validator.validateAlbumPayload(request.payload)
       const { id } = request.params
       this._service.editAlbumById(id, request.payload)
       return {
@@ -67,11 +80,20 @@ class MusicHandler {
         message: 'Album berhasil diperbarui'
       }
     } catch (error) {
-      const response = h.reponse({
-        status: 'fail',
-        message: error.message
+      if (error instanceof ClientError) {
+        const response = h.response({
+          status: 'fail',
+          message: error.message
+        })
+        response.code(error.statuscode)
+        return response
+      }
+      // Server Error 500
+      const response = h.response({
+        status: 'error',
+        message: 'Maaf, terjadi kegagalan pada server kami.'
       })
-      response.code(404)
+      response.code(500)
       return response
     }
   }
@@ -85,11 +107,20 @@ class MusicHandler {
         message: 'Album berhasil dihapus'
       }
     } catch (error) {
+      if (error instanceof ClientError) {
+        const response = h.response({
+          status: 'fail',
+          message: error.message
+        })
+        response.code(error.statuscode)
+        return response
+      }
+      // Server Error 500
       const response = h.response({
-        status: 'fail',
-        message: error.message
+        status: 'error',
+        message: 'Maaf, terjadi kegagalan pada server kami.'
       })
-      response.code(404)
+      response.code(500)
       return response
     }
   }
