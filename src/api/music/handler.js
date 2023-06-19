@@ -51,6 +51,67 @@ class MusicHandler {
       message: 'Album berhasil dihapus'
     }
   }
+
+  async postSongHandler (request, h) {
+    this._validator.validateSongsPayload(request.payload)
+    const { title, year, genre, performer, duration = undefined, albumId = undefined } = request.payload
+    const songId = await this._service.addSong({ title, year, genre, performer, duration, albumId })
+    const response = h.response({
+      status: 'success',
+      message: 'Lagu berhasil ditambahkan',
+      data: {
+        songId
+      }
+    })
+    response.code(201)
+    return response
+  }
+
+  async getAllSongsHandler (request) {
+    const { title = undefined, performer = undefined } = request.query
+    const queryParam = {
+      title,
+      performer
+    }
+    const songs = await this._service.getSongs(queryParam)
+    return {
+      status: 'success',
+      data: {
+        songs
+      }
+    }
+  }
+
+  async getSongByIdHandler (request, h) {
+    const { id } = request.params
+    const song = await this._service.getSongById(id)
+    return {
+      status: 'success',
+      data: {
+        song
+      }
+    }
+  }
+
+  async putSongByIdHandler (request, h) {
+    this._validator.validateSongsPayload(request.payload)
+    const { id } = request.params
+    const { title, year, genre, performer, duration = undefined, albumId = undefined } = request.payload
+    await this._service.editSongById(id, { title, year, genre, performer, duration, albumId })
+    return {
+      status: 'success',
+      message: 'Lagu berhasil diperbarui'
+    }
+  }
+
+  async deleteSongByIdHandler (request, h) {
+    const { id } = request.params
+    await this._service.deleteSongById(id)
+    return {
+      status: 'success',
+      message: 'Lagu berhasil dihapus'
+    }
+  }
 }
 
 module.exports = MusicHandler

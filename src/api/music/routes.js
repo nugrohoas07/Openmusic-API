@@ -1,4 +1,5 @@
 const routes = (handler) => [
+  // -----ALBUM HANDLER-----
   {
     method: 'POST',
     path: '/albums',
@@ -18,8 +19,9 @@ const routes = (handler) => [
     method: 'DELETE',
     path: '/albums/{id}',
     handler: handler.deleteAlbumByIdHandler
-  }
-  /* {
+  },
+  // -----SONGS HANDLER-----
+  {
     method: 'POST',
     path: '/songs',
     handler: handler.postSongHandler
@@ -43,8 +45,7 @@ const routes = (handler) => [
     method: 'DELETE',
     path: '/songs/{id}',
     handler: handler.deleteSongByIdHandler
-  } */
-
+  }
 ]
 
 module.exports = routes
