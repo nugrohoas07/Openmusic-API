@@ -1,9 +1,9 @@
 const AutoBind = require('auto-bind')
 
 class MusicHandler {
-  constructor (service, validator) {
-    this._albumService = service.albumService
-    this._songService = service.songService
+  constructor (albumService, songService, validator) {
+    this._albumService = albumService
+    this._songService = songService
     this._validator = validator
     AutoBind(this)
   }
