@@ -88,6 +88,27 @@ class SongService {
       throw new NotFoundError('Lagu gagal dihapus. Id tidak ditemukan')
     }
   }
+
+  async getSongsOnPlaylist (playlistId) {
+    const query = {
+      text: 'SELECT songs.id, songs.title, songs.performer FROM songs INNER JOIN playlist_songs ON songs.id = playlist_songs.song_id WHERE playlist_songs.playlist_id = $1',
+      values: [playlistId]
+    }
+    const result = await this._pool.query(query)
+    return result.rows
+  }
+
+  async verifySongExist (id) {
+    const query = {
+      text: 'SELECT * FROM songs WHERE id = $1',
+      values: [id]
+    }
+    const result = await this._pool.query(query)
+
+    if (!result.rowCount) {
+      throw new NotFoundError('Lagu tidak ditemukan')
+    }
+  }
 }
 
 module.exports = SongService
