@@ -65,7 +65,11 @@ class PlaylistsService {
 
   async getPlaylistById (id) {
     const query = {
-      text: 'SELECT playlists.id, playlists.name, users.username FROM playlists INNER JOIN users ON playlists.owner = users.id WHERE playlists.id = $1',
+      text: `SELECT playlists.id, playlists.name, users.username 
+      FROM playlists 
+      INNER JOIN users 
+      ON playlists.owner = users.id 
+      WHERE playlists.id = $1`,
       values: [id]
     }
     const result = await this._pool.query(query)
@@ -106,11 +110,11 @@ class PlaylistsService {
 
   async getPlaylistSongActivity (playlistId) {
     const query = {
-      text: `select us.username, songs.title, psa.action, psa.time
-      from playlist_song_activities psa
-      join users us on psa.user_id = us.id
-      join songs on psa.song_id = songs.id
-      where psa.playlist_id = $1`,
+      text: `SELECT us.username, songs.title, psa.action, psa.time
+      FROM playlist_song_activities psa
+      JOIN users us ON psa.user_id = us.id
+      JOIN songs ON psa.song_id = songs.id
+      WHERE psa.playlist_id = $1`,
       values: [playlistId]
     }
     const result = await this._pool.query(query)
