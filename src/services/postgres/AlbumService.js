@@ -4,8 +4,9 @@ const InvariantError = require('../../exceptions/InvariantError')
 const NotFoundError = require('../../exceptions/NotFoundError')
 
 class AlbumService {
-  constructor () {
+  constructor (cacheService) {
     this._pool = new Pool()
+    this._cacheService = cacheService
   }
 
   async addAlbum ({ name, year }) {
@@ -82,16 +83,30 @@ class AlbumService {
     if (!result.rowCount) {
       throw new InvariantError('Gagal like album')
     }
+    await this._cacheService.delete(`likes:${albumId}`)
   }
 
   async getAlbumLikes (albumId) {
-    const query = {
-      text: 'SELECT * FROM user_album_likes WHERE album_id = $1',
-      values: [albumId]
-    }
+    try {
+      const result = await this._cacheService.get(`likes:${albumId}`)
+      return {
+        likes: JSON.parse(result),
+        isCache: true
+      }
+    } catch (error) {
+      const query = {
+        text: 'SELECT * FROM user_album_likes WHERE album_id = $1',
+        values: [albumId]
+      }
+      const result = await this._pool.query(query)
 
-    const result = await this._pool.query(query)
-    return result.rowCount
+      const likesCount = result.rowCount
+      await this._cacheService.set(`likes:${albumId}`, likesCount)
+      return {
+        likes: likesCount,
+        isCache: false
+      }
+    }
   }
 
   async deleteAlbumLike (userId, albumId) {
@@ -104,6 +119,7 @@ class AlbumService {
     if (!result.rowCount) {
       throw new NotFoundError('Gagal unlike album')
     }
+    await this._cacheService.delete(`likes:${albumId}`)
   }
 
   async verifyUserLikeAlbum (userId, albumId) {
@@ -115,6 +131,16 @@ class AlbumService {
     const result = await this._pool.query(query)
     if (result.rowCount) {
       throw new InvariantError('Gagal like album')
+    }
+  }
+
+  async isDataFromCache (albumId) {
+    try {
+      const result = await this._cacheService.get(`likes:${albumId}`)
+      console.log(result)
+      return true
+    } catch (error) {
+      return false
     }
   }
 }

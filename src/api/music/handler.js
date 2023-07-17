@@ -97,16 +97,18 @@ class MusicHandler {
     return response
   }
 
-  async getAlbumLikesHandler (request) {
+  async getAlbumLikesHandler (request, h) {
     const { id: albumId } = request.params
 
-    const likes = await this._albumService.getAlbumLikes(albumId)
-    return {
+    const likesCount = await this._albumService.getAlbumLikes(albumId)
+    const response = h.response({
       status: 'success',
       data: {
-        likes
+        likes: likesCount.likes
       }
-    }
+    })
+    if (likesCount.isCache) response.header('X-Data-Source', 'cache')
+    return response
   }
 
   async deleteAlbumLikeHandler (request) {
