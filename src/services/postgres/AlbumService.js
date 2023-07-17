@@ -70,6 +70,53 @@ class AlbumService {
       throw new NotFoundError('Gagal, album tidak ditemukan')
     }
   }
+
+  async addAlbumLikes (userId, albumId) {
+    const id = 'albmlikes-' + nanoid(16)
+    const query = {
+      text: 'INSERT INTO user_album_likes VALUES($1, $2, $3) RETURNING id',
+      values: [id, userId, albumId]
+    }
+
+    const result = await this._pool.query(query)
+    if (!result.rowCount) {
+      throw new InvariantError('Gagal like album')
+    }
+  }
+
+  async getAlbumLikes (albumId) {
+    const query = {
+      text: 'SELECT * FROM user_album_likes WHERE album_id = $1',
+      values: [albumId]
+    }
+
+    const result = await this._pool.query(query)
+    return result.rowCount
+  }
+
+  async deleteAlbumLike (userId, albumId) {
+    const query = {
+      text: 'DELETE FROM user_album_likes WHERE user_id = $1 AND album_id = $2 RETURNING id',
+      values: [userId, albumId]
+    }
+    const result = await this._pool.query(query)
+
+    if (!result.rowCount) {
+      throw new NotFoundError('Gagal unlike album')
+    }
+  }
+
+  async verifyUserLikeAlbum (userId, albumId) {
+    const query = {
+      text: 'SELECT * FROM user_album_likes WHERE user_id = $1 AND album_id = $2',
+      values: [userId, albumId]
+    }
+
+    const result = await this._pool.query(query)
+    if (result.rowCount) {
+      throw new InvariantError('Gagal like album')
+    }
+  }
 }
 
 module.exports = AlbumService

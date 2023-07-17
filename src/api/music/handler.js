@@ -82,6 +82,44 @@ class MusicHandler {
     }
   }
 
+  async postAlbumLikeHandler (request, h) {
+    const { id: albumId } = request.params
+    const { id: credentialId } = request.auth.credentials
+
+    await this._albumService.getAlbumById(albumId)
+    await this._albumService.verifyUserLikeAlbum(credentialId, albumId)
+    await this._albumService.addAlbumLikes(credentialId, albumId)
+    const response = h.response({
+      status: 'success',
+      message: 'Berhasil like album'
+    })
+    response.code(201)
+    return response
+  }
+
+  async getAlbumLikesHandler (request) {
+    const { id: albumId } = request.params
+
+    const likes = await this._albumService.getAlbumLikes(albumId)
+    return {
+      status: 'success',
+      data: {
+        likes
+      }
+    }
+  }
+
+  async deleteAlbumLikeHandler (request) {
+    const { id: albumId } = request.params
+    const { id: credentialId } = request.auth.credentials
+
+    await this._albumService.deleteAlbumLike(credentialId, albumId)
+    return {
+      status: 'success',
+      message: 'Berhasil unlike album'
+    }
+  }
+
   async postSongHandler (request, h) {
     this._validator.validateSongsPayload(request.payload)
     const { title, year, genre, performer, duration = undefined, albumId = undefined } = request.payload
