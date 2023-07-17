@@ -1,4 +1,5 @@
 const AutoBind = require('auto-bind')
+const config = require('../../utils/config')
 
 class MusicHandler {
   constructor (albumService, songService, storageService, validator) {
@@ -37,7 +38,7 @@ class MusicHandler {
       status: 'success',
       message: 'Sampul berhasil diunggah',
       data: {
-        fileLocation: `http://${process.env.HOST}:${process.env.PORT}/albums/${id}/covers/${filename}`
+        fileLocation: `http://${config.app.host}:${config.app.port}/albums/${id}/covers/${filename}`
       }
     })
     response.code(201)
@@ -48,7 +49,7 @@ class MusicHandler {
     const { id } = request.params
     const album = await this._albumService.getAlbumById(id)
     const songs = await this._songService.getSongsByAlbumId(id)
-    const coverUrl = album.cover === null ? null : `http://${process.env.HOST}:${process.env.PORT}/albums/${id}/covers/${album.cover}`
+    const coverUrl = album.cover === null ? null : `http://${config.app.host}:${config.app.port}/albums/${id}/covers/${album.cover}`
     return {
       status: 'success',
       data: {
