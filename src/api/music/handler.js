@@ -1,9 +1,10 @@
 const AutoBind = require('auto-bind')
 
 class MusicHandler {
-  constructor (albumService, songService, validator) {
+  constructor (albumService, songService, storageService, validator) {
     this._albumService = albumService
     this._songService = songService
+    this._storageService = storageService
     this._validator = validator
     AutoBind(this)
   }
@@ -23,19 +24,46 @@ class MusicHandler {
     return response
   }
 
-  async getAlbumByIdHandler (request, h) {
+  async postUploadAlbumCoverHandler (request, h) {
+    const { cover } = request.payload
+    const { id } = request.params
+
+    this._validator.validateAlbumCoverHeaders(cover.hapi.headers)
+
+    const filename = await this._storageService.writeFile(cover, cover.hapi)
+    await this._albumService.addAlbumCoverById(id, filename)
+
+    const response = h.response({
+      status: 'success',
+      message: 'Sampul berhasil diunggah',
+      data: {
+        fileLocation: `http://${process.env.HOST}:${process.env.PORT}/albums/${id}/covers/${filename}`
+      }
+    })
+    response.code(201)
+    return response
+  }
+
+  async getAlbumByIdHandler (request) {
     const { id } = request.params
     const album = await this._albumService.getAlbumById(id)
     const songs = await this._songService.getSongsByAlbumId(id)
+    const coverUrl = album.cover === null ? null : `http://${process.env.HOST}:${process.env.PORT}/albums/${id}/covers/${album.cover}`
     return {
       status: 'success',
       data: {
-        album: { ...album, songs }
+        album: {
+          id: album.id,
+          name: album.name,
+          year: album.year,
+          coverUrl,
+          songs
+        }
       }
     }
   }
 
-  async putAlbumByIdHandler (request, h) {
+  async putAlbumByIdHandler (request) {
     this._validator.validateAlbumPayload(request.payload)
     const { id } = request.params
     await this._albumService.editAlbumById(id, request.payload)
@@ -45,7 +73,7 @@ class MusicHandler {
     }
   }
 
-  async deleteAlbumByIdHandler (request, h) {
+  async deleteAlbumByIdHandler (request) {
     const { id } = request.params
     await this._albumService.deleteAlbumById(id)
     return {
@@ -84,7 +112,7 @@ class MusicHandler {
     }
   }
 
-  async getSongByIdHandler (request, h) {
+  async getSongByIdHandler (request) {
     const { id } = request.params
     const song = await this._songService.getSongById(id)
     return {
@@ -95,7 +123,7 @@ class MusicHandler {
     }
   }
 
-  async putSongByIdHandler (request, h) {
+  async putSongByIdHandler (request) {
     this._validator.validateSongsPayload(request.payload)
     const { id } = request.params
     const { title, year, genre, performer, duration = undefined, albumId = undefined } = request.payload
@@ -106,7 +134,7 @@ class MusicHandler {
     }
   }
 
-  async deleteSongByIdHandler (request, h) {
+  async deleteSongByIdHandler (request) {
     const { id } = request.params
     await this._songService.deleteSongById(id)
     return {
