@@ -1,7 +1,7 @@
 const AutoBind = require('auto-bind')
 const config = require('../../utils/config')
 
-class MusicHandler {
+class AlbumsHandler {
   constructor (albumService, songService, storageService, validator) {
     this._albumService = albumService
     this._songService = songService
@@ -122,67 +122,6 @@ class MusicHandler {
       message: 'Berhasil unlike album'
     }
   }
-
-  async postSongHandler (request, h) {
-    this._validator.validateSongsPayload(request.payload)
-    const { title, year, genre, performer, duration = undefined, albumId = undefined } = request.payload
-    const songId = await this._songService.addSong({ title, year, genre, performer, duration, albumId })
-    const response = h.response({
-      status: 'success',
-      message: 'Lagu berhasil ditambahkan',
-      data: {
-        songId
-      }
-    })
-    response.code(201)
-    return response
-  }
-
-  async getAllSongsHandler (request) {
-    const { title = undefined, performer = undefined } = request.query
-    const queryParam = {
-      title,
-      performer
-    }
-    const songs = await this._songService.getSongs(queryParam)
-    return {
-      status: 'success',
-      data: {
-        songs
-      }
-    }
-  }
-
-  async getSongByIdHandler (request) {
-    const { id } = request.params
-    const song = await this._songService.getSongById(id)
-    return {
-      status: 'success',
-      data: {
-        song
-      }
-    }
-  }
-
-  async putSongByIdHandler (request) {
-    this._validator.validateSongsPayload(request.payload)
-    const { id } = request.params
-    const { title, year, genre, performer, duration = undefined, albumId = undefined } = request.payload
-    await this._songService.editSongById(id, { title, year, genre, performer, duration, albumId })
-    return {
-      status: 'success',
-      message: 'Lagu berhasil diperbarui'
-    }
-  }
-
-  async deleteSongByIdHandler (request) {
-    const { id } = request.params
-    await this._songService.deleteSongById(id)
-    return {
-      status: 'success',
-      message: 'Lagu berhasil dihapus'
-    }
-  }
 }
 
-module.exports = MusicHandler
+module.exports = AlbumsHandler

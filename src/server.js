@@ -5,11 +5,14 @@ const Inert = require('@hapi/inert')
 const path = require('path')
 const config = require('./utils/config')
 const ClientError = require('./exceptions/ClientError')
-// ----- music plugin -----
-const music = require('./api/music')
+// ----- albums plugin -----
+const albums = require('./api/albums')
 const AlbumService = require('./services/postgres/AlbumService')
+const AlbumsValidator = require('./validator/albums')
+// ----- songs plugin -----
+const songs = require('./api/songs')
 const SongService = require('./services/postgres/SongService')
-const MusicValidator = require('./validator/music')
+const SongsValidator = require('./validator/songs')
 // ----- user plugin -----
 const users = require('./api/users')
 const UsersService = require('./services/postgres/UsersService')
@@ -33,7 +36,7 @@ const ProducerService = require('./services/rabbitmq/ProducerService')
 const ExportsValidator = require('./validator/exports')
 // ----- storage -----
 const StorageService = require('./services/storage/StorageService')
-// cache
+// ----- cache -----
 const CacheService = require('./services/redis/CacheService')
 
 const init = async () => {
@@ -44,7 +47,7 @@ const init = async () => {
   const authenticationsService = new AuthenticationsService()
   const collaborationsService = new CollaborationsService()
   const playlistsService = new PlaylistsService(collaborationsService)
-  const storageService = new StorageService(path.resolve(__dirname, 'api/music/file/covers'))
+  const storageService = new StorageService(path.resolve(__dirname, 'api/albums/file/covers'))
   const server = Hapi.server({
     port: config.app.port,
     host: config.app.host,
@@ -82,12 +85,19 @@ const init = async () => {
 
   await server.register([
     {
-      plugin: music,
+      plugin: albums,
       options: {
         albumService,
         songService,
         storageService,
-        validator: MusicValidator
+        validator: AlbumsValidator
+      }
+    },
+    {
+      plugin: songs,
+      options: {
+        songService,
+        validator: SongsValidator
       }
     },
     {

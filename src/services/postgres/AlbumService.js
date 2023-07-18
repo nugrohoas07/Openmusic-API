@@ -10,7 +10,7 @@ class AlbumService {
   }
 
   async addAlbum ({ name, year }) {
-    const id = 'album-' + nanoid(16)
+    const id = `album-${nanoid(16)}`
 
     const query = {
       text: 'INSERT INTO albums VALUES($1, $2, $3) RETURNING id',
@@ -31,11 +31,11 @@ class AlbumService {
       text: 'SELECT * FROM albums WHERE id = $1',
       values: [id]
     }
-    const result = await this._pool.query(query)
-    if (!result.rowCount) {
+    const { rows, rowCount } = await this._pool.query(query)
+    if (!rowCount) {
       throw new NotFoundError('album tidak ditemukan')
     }
-    return result.rows[0]
+    return rows[0]
   }
 
   async editAlbumById (id, { name, year }) {
@@ -73,7 +73,7 @@ class AlbumService {
   }
 
   async addAlbumLikes (userId, albumId) {
-    const id = 'albmlikes-' + nanoid(16)
+    const id = `albmlikes-${nanoid(16)}`
     const query = {
       text: 'INSERT INTO user_album_likes VALUES($1, $2, $3) RETURNING id',
       values: [id, userId, albumId]

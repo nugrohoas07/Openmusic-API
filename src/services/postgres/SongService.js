@@ -2,7 +2,6 @@ const { nanoid } = require('nanoid')
 const { Pool } = require('pg')
 const InvariantError = require('../../exceptions/InvariantError')
 const NotFoundError = require('../../exceptions/NotFoundError')
-const { mapSongsDBToModel } = require('../../utils')
 
 class SongService {
   constructor () {
@@ -10,7 +9,7 @@ class SongService {
   }
 
   async addSong ({ title, year, genre, performer, duration, albumId }) {
-    const id = 'song-' + nanoid(16)
+    const id = `song-${nanoid(16)}`
 
     const query = {
       text: 'INSERT INTO songs VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING id',
@@ -31,18 +30,18 @@ class SongService {
     if (param.title !== undefined && param.performer !== undefined) {
       query = {
         text: 'SELECT id,title,performer FROM songs WHERE title ILIKE $1 AND performer ILIKE $2',
-        values: ['%' + param.title + '%', '%' + param.performer + '%']
+        values: [`%${param.title}%`, `%${param.performer}%`]
       }
     } else if (param.title !== undefined || param.performer !== undefined) {
       const coloumn = param.title ? 'title' : 'performer'
       const val = param.title ? param.title : param.performer
       query = {
         text: `SELECT id,title,performer FROM songs WHERE ${coloumn} ILIKE $1`,
-        values: ['%' + val + '%']
+        values: [`%${val}%`]
       }
     }
     const result = await this._pool.query(query)
-    return result.rows.map(mapSongsDBToModel)
+    return result.rows
   }
 
   async getSongById (id) {
