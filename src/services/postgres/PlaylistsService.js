@@ -5,9 +5,10 @@ const NotFoundError = require('../../exceptions/NotFoundError')
 const AuthorizationError = require('../../exceptions/AuthorizationError')
 
 class PlaylistsService {
-  constructor (collaborationService) {
+  constructor (collaborationService, cacheService) {
     this._pool = new Pool()
     this._collaborationService = collaborationService
+    this._cacheService = cacheService
   }
 
   async addPlaylist (name, owner) {
@@ -106,19 +107,36 @@ class PlaylistsService {
     if (!result.rowCount) {
       throw new InvariantError('Playlist activity gagal ditambahkan')
     }
+    await this._cacheService.delete(`activities:${playlistId}`)
   }
 
   async getPlaylistSongActivity (playlistId) {
-    const query = {
-      text: `SELECT us.username, songs.title, psa.action, psa.time
-      FROM playlist_song_activities psa
-      JOIN users us ON psa.user_id = us.id
-      JOIN songs ON psa.song_id = songs.id
-      WHERE psa.playlist_id = $1`,
-      values: [playlistId]
+    try {
+      const result = await this._cacheService.get(`activities:${playlistId}`)
+      return {
+        data: JSON.parse(result),
+        isCache: true
+      }
+    } catch (error) {
+      const query = {
+        text: `SELECT us.username, songs.title, psa.action, psa.time
+        FROM playlist_song_activities psa
+        JOIN users us ON psa.user_id = us.id
+        JOIN songs ON psa.song_id = songs.id
+        WHERE psa.playlist_id = $1
+        ORDER BY psa.time ASC`,
+        values: [playlistId]
+      }
+      const result = await this._pool.query(query)
+
+      const activities = result.rows
+      await this._cacheService.set(`activities:${playlistId}`, JSON.stringify(activities))
+
+      return {
+        data: activities,
+        isCache: false
+      }
     }
-    const result = await this._pool.query(query)
-    return result.rows
   }
 
   async verifyPlaylistOwner (id, owner) {

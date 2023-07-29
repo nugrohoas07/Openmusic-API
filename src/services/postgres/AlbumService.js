@@ -133,16 +133,6 @@ class AlbumService {
       throw new InvariantError('Gagal like album')
     }
   }
-
-  async isDataFromCache (albumId) {
-    try {
-      const result = await this._cacheService.get(`likes:${albumId}`)
-      console.log(result)
-      return true
-    } catch (error) {
-      return false
-    }
-  }
 }
 
 module.exports = AlbumService
