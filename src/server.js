@@ -45,7 +45,7 @@ const init = async () => {
   const songService = new SongService()
   const usersService = new UsersService()
   const authenticationsService = new AuthenticationsService()
-  const collaborationsService = new CollaborationsService()
+  const collaborationsService = new CollaborationsService(cacheService)
   const playlistsService = new PlaylistsService(collaborationsService, cacheService)
   const storageService = new StorageService(path.resolve(__dirname, 'api/albums/file/covers'))
   const server = Hapi.server({
@@ -164,7 +164,6 @@ const init = async () => {
         message: 'terjadi kegagalan pada server kami'
       })
       newResponse.code(500)
-      console.log(newResponse)
       return newResponse
     }
 

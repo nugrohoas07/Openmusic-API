@@ -50,8 +50,7 @@ class SongsHandler {
   async putSongByIdHandler (request) {
     this._validator.validateSongsPayload(request.payload)
     const { id } = request.params
-    const { title, year, genre, performer, duration = undefined, albumId = undefined } = request.payload
-    await this._songService.editSongById(id, { title, year, genre, performer, duration, albumId })
+    await this._songService.editSongById(id, request.payload)
     return {
       status: 'success',
       message: 'Lagu berhasil diperbarui'
